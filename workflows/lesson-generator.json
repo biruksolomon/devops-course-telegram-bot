@@ -1,0 +1,325 @@
+{
+  "name": "Lesson Generator",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "94ced97d-b6fa-437c-a416-5c34acd80403",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "ezNrQcXxeNOtMQ0r",
+          "mode": "list",
+          "cachedResultName": "lessons",
+          "cachedResultUrl": "/projects/7IAWZUrQMxG1eaDp/datatables/ezNrQcXxeNOtMQ0r"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "status",
+              "keyValue": "pending"
+            }
+          ]
+        },
+        "returnAll": true
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        224,
+        0
+      ],
+      "id": "30189245-7463-4b5c-8222-771fb8141741",
+      "name": "Get row(s)"
+    },
+    {
+      "parameters": {
+        "sortFieldsUi": {
+          "sortField": [
+            {
+              "fieldName": "lesson_no"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.sort",
+      "typeVersion": 1,
+      "position": [
+        448,
+        0
+      ],
+      "id": "69e8c2c5-4647-41d5-aae3-f8db608a072f",
+      "name": "Sort"
+    },
+    {
+      "parameters": {
+        "maxItems": 3
+      },
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        672,
+        0
+      ],
+      "id": "4d04c9b3-38c3-4c01-8419-b2edc8b7c604",
+      "name": "Limit"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Write lesson {{ Number($json.lesson_no) }} for a beginner DevOps course.\n\nModule: {{ $json.module }}\nTopic: {{ $json.topic }}\nPoints to cover: {{ $json.outline }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are a DevOps teacher writing one Telegram lesson for complete beginners.  Rules: - Total length under 2500 characters. - Use ONLY these HTML tags: <b>, <i>, <code>, <pre>. No Markdown. No other tags. - Use exactly this structure:   1. 📘 <b>Lesson N: Title</b>   2. A short explanation, 3 to 5 sentences, simple words.   3. 💡 One real-world analogy.   4. 🧪 A <pre> block with a small example (commands or config).   5. ✅ <b>Practice:</b> one small task the student can do now.   6. ➡️ One line teasing the next topic. - Only include commands you are certain are correct and safe for a beginner. Never invent flags or options. - Write in clear English."
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        896,
+        0
+      ],
+      "id": "fe275213-9731-4bb4-876d-a8bcfcefd30e",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        832,
+        208
+      ],
+      "id": "5fc385f9-d631-408c-8521-71a22334a0e6",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "xYGyoa2w5r49GhhP",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const rows = $('Limit').all();\n\nreturn $input.all().map((item, i) => {\n  let t = (item.json.text || '').trim();\n\n  // 1. escape everything\n  t = t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n\n  // 2. restore the tags Telegram supports\n  t = t.replace(/&lt;(\\/?)(b|i|code|pre)&gt;/gi, '<$1$2>');\n\n  // 3. convert Markdown the AI may still use\n  t = t.replace(/```[a-z]*\\n?([\\s\\S]*?)```/g, '<pre>$1</pre>')\n       .replace(/\\*\\*(.+?)\\*\\*/g, '<b>$1</b>');\n\n  // 4. stay under Telegram's 4096 character limit\n  t = t.slice(0, 3900);\n\n  return { json: { id: rows[i].json.id, content: t } };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1264,
+        0
+      ],
+      "id": "7951466b-2c93-4676-848b-80c89bb59754",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "value": "ezNrQcXxeNOtMQ0r",
+          "mode": "list",
+          "cachedResultName": "lessons",
+          "cachedResultUrl": "/projects/7IAWZUrQMxG1eaDp/datatables/ezNrQcXxeNOtMQ0r"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyValue": "={{ $json.id }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "content": "={{ $json.content }}",
+            "status": "ready"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "lesson_no",
+              "displayName": "lesson_no",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "module",
+              "displayName": "module",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "topic",
+              "displayName": "topic",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "outline",
+              "displayName": "outline",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "content",
+              "displayName": "content",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1488,
+        0
+      ],
+      "id": "fde2eb05-575e-4338-ae2c-96fae528198a",
+      "name": "Update row(s)"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get row(s)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s)": {
+      "main": [
+        [
+          {
+            "node": "Sort",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sort": {
+      "main": [
+        [
+          {
+            "node": "Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Update row(s)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "561fab3f-e543-44ae-a73f-b52ef11fabbc",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8374dfefddf39ea60cd0a9433d7079a56560816d94b5587044f7d08077b25ff7"
+  },
+  "nodeGroups": [],
+  "id": "vxAVumO1ofhXQSN7",
+  "tags": []
+}

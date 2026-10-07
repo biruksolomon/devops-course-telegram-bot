@@ -1,0 +1,285 @@
+{
+  "name": "Lesson Poster.",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 8,12,16,20 * * *"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        0
+      ],
+      "id": "ba5738a3-167d-4353-96f7-da809ed6d2d9",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "ezNrQcXxeNOtMQ0r",
+          "mode": "list",
+          "cachedResultName": "lessons",
+          "cachedResultUrl": "/projects/7IAWZUrQMxG1eaDp/datatables/ezNrQcXxeNOtMQ0r"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "status",
+              "keyValue": "ready"
+            }
+          ]
+        },
+        "returnAll": true
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        224,
+        0
+      ],
+      "id": "79732385-4187-4d07-b05b-b2eba88c68fd",
+      "name": "Get row(s)"
+    },
+    {
+      "parameters": {
+        "sortFieldsUi": {
+          "sortField": [
+            {
+              "fieldName": "lesson_no"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.sort",
+      "typeVersion": 1,
+      "position": [
+        448,
+        0
+      ],
+      "id": "1ff53c78-6744-4556-ad59-a201f906421f",
+      "name": "Sort"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        672,
+        0
+      ],
+      "id": "568c89e6-2578-4065-9da3-ca435c79cc3a",
+      "name": "Limit"
+    },
+    {
+      "parameters": {
+        "chatId": "@devcast_devops",
+        "text": "=   {{ $json.content }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        896,
+        0
+      ],
+      "id": "4423de2c-20e7-4d3b-87bd-86a76a7314f0",
+      "name": "Send a text message",
+      "webhookId": "31a4dfc5-bbeb-440d-bbf8-bb59de6552e2",
+      "credentials": {
+        "telegramApi": {
+          "id": "iqitqWC87OeWp6oM",
+          "name": "Telegram DevOps Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "value": "ezNrQcXxeNOtMQ0r",
+          "mode": "list",
+          "cachedResultName": "lessons",
+          "cachedResultUrl": "/projects/7IAWZUrQMxG1eaDp/datatables/ezNrQcXxeNOtMQ0r"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyValue": "=   {{ $('Limit').item.json.id }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "status": "posted"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "lesson_no",
+              "displayName": "lesson_no",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "module",
+              "displayName": "module",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "topic",
+              "displayName": "topic",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "outline",
+              "displayName": "outline",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "content",
+              "displayName": "content",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1120,
+        0
+      ],
+      "id": "4f5e20da-be0f-4f68-8dcb-9a469f7a5a90",
+      "name": "Update row(s)"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get row(s)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s)": {
+      "main": [
+        [
+          {
+            "node": "Sort",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sort": {
+      "main": [
+        [
+          {
+            "node": "Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message": {
+      "main": [
+        [
+          {
+            "node": "Update row(s)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "timezone": "Africa/Addis_Ababa",
+    "callerPolicy": "workflowsFromSameOwner",
+    "executionTimeout": -1,
+    "availableInMCP": false
+  },
+  "versionId": "dc6e8599-e8d9-4566-83fa-a90ef74f24e2",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8374dfefddf39ea60cd0a9433d7079a56560816d94b5587044f7d08077b25ff7"
+  },
+  "nodeGroups": [],
+  "id": "iD10JIYEeZt3AND9",
+  "tags": []
+}
